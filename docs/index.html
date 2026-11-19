@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catálogo de Joias</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* paleta em harmonia com a Veri: verde profundo, verde sálvia e rosé */
+    --bg:#f6f7f5; --surface:#fff; --ink:#24302b; --muted:#6c7a73; --line:#e1e7e3;
+    --deep:#3b4e46; --sage:#7b9186; --rose:#d78e88; --rose-soft:#f7e6e3; --rose-ink:#9a524b;
+    --photo:#f0f2f0; --green:#1e7a46; --green-ink:#fff;
+    --radius:14px; --shadow:0 1px 2px rgba(36,48,43,.06),0 6px 18px rgba(36,48,43,.07);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+  button,input,select{font:inherit;color:inherit}
+  button{cursor:pointer}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+
+  /* Cabeçalho */
+  header.top{background:var(--sage);color:#fff;padding:22px 0 18px;text-align:center}
+  .brand{font-family:Poppins,Manrope,system-ui,sans-serif;font-weight:600;font-size:clamp(24px,6.4vw,34px);letter-spacing:.03em;margin:0;line-height:1.1}
+  .tag{margin:6px 0 0;color:rgba(255,255,255,.88);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+  .bar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 0 8px}
+  .search{position:relative}
+  .search input{width:100%;height:44px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:0 16px 0 42px;font-size:15px;outline:none}
+  .search input:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(123,145,134,.22)}
+  .search svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:500;white-space:nowrap}
+  .chip small{color:var(--muted);font-weight:500;margin-left:4px}
+  .chip[aria-pressed="true"]{background:var(--deep);border-color:var(--deep);color:#fff}
+  .chip[aria-pressed="true"] small{color:#c9d5cf}
+  .row2{display:flex;gap:8px;align-items:center;padding-top:8px;overflow-x:auto;scrollbar-width:none}
+  .row2::-webkit-scrollbar{display:none}
+  .seg{display:flex;gap:6px;flex:0 0 auto}
+  .seg .chip{padding:5px 12px;font-size:13px}
+  select.sort{flex:0 0 auto;height:32px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:0 10px;font-size:13px}
+
+  .count{color:var(--muted);font-size:13px;margin:14px 0 10px}
+
+  /* Grade */
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding-bottom:120px}
+  @media (min-width:640px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}}
+  @media (min-width:960px){.grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}}
+  .card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;position:relative;border:0;padding:0;text-align:left}
+  .card .ph{aspect-ratio:1/1;background:var(--photo);position:relative;overflow:hidden}
+  .card .ph img{width:100%;height:100%;object-fit:cover;display:block}
+  .badges{position:absolute;left:8px;top:8px;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+  .badge{background:rgba(255,255,255,.92);border-radius:999px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--ink)}
+  .badge.gold{background:var(--rose-soft);color:var(--rose-ink)}
+  .card .info{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
+  .price{font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+  .desc{font-size:13px;line-height:1.35;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.7em}
+  .meta{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+  .dot.ouro{background:linear-gradient(135deg,#f3d58a,#c79a3b)}
+  .dot.rodio{background:linear-gradient(135deg,#f1f3f5,#a7aeb5)}
+  .dot.prata{background:linear-gradient(135deg,#ffffff,#c4c9ce)}
+  .dot.misto{background:linear-gradient(90deg,#d9b05a 50%,#b9c0c6 50%)}
+  .add{position:absolute;right:8px;top:8px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.95);box-shadow:var(--shadow);display:grid;place-items:center}
+  .add svg{width:18px;height:18px}
+  .add.on{background:var(--deep);color:#fff}
+
+  .open{all:unset;display:block;cursor:pointer;flex:1}
+  .open:focus-visible{outline:2px solid var(--rose);outline-offset:-2px;border-radius:var(--radius)}
+  .noimg{width:100%;height:100%;display:grid;place-items:center;color:#9fb0a7;font-size:12px;font-weight:600;letter-spacing:.06em;text-align:center}
+  .noimg svg{width:34px;height:34px;display:block;margin:0 auto 6px}
+
+  .empty{text-align:center;color:var(--muted);padding:60px 0}
+
+  /* Sacolinha flutuante */
+  .bagbar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom));pointer-events:none}
+  .bagbar button{pointer-events:auto;width:100%;max-width:560px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--deep);color:#fff;border:0;border-radius:999px;padding:14px 20px;font-weight:600;font-size:15px;box-shadow:0 10px 30px rgba(36,48,43,.28)}
+  .bagbar[hidden]{display:none}
+
+  /* Painel (detalhe e sacolinha) */
+  .sheet{position:fixed;inset:0;z-index:40;display:none}
+  .sheet.open{display:block}
+  .sheet .backdrop{position:absolute;inset:0;background:rgba(28,38,34,.5)}
+  .panel{position:absolute;left:0;right:0;bottom:0;max-height:92vh;overflow:auto;background:var(--surface);border-radius:20px 20px 0 0;padding-bottom:calc(16px + env(safe-area-inset-bottom));animation:up .22s ease-out}
+  @media (min-width:760px){.panel{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-50%);width:min(560px,92vw);border-radius:20px;animation:none}}
+  @keyframes up{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+  .close{position:absolute;right:12px;top:12px;z-index:3;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.94);box-shadow:var(--shadow);font-size:20px;line-height:1}
+  .carousel{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;background:var(--photo)}
+  .carousel::-webkit-scrollbar{display:none}
+  .slide{flex:0 0 100%;scroll-snap-align:center;aspect-ratio:1/1;position:relative}
+  .slide img{width:100%;height:100%;object-fit:contain;display:block}
+  .slide .lbl{position:absolute;left:10px;bottom:10px}
+  .dots{display:flex;gap:6px;justify-content:center;padding:10px 0 0}
+  .dots span{width:6px;height:6px;border-radius:50%;background:#cfd8d3}
+  .dots span.on{background:var(--deep)}
+  .pbody{padding:14px 20px 4px}
+  .pbody h2{font-family:Poppins,Manrope,system-ui,sans-serif;font-weight:600;font-size:21px;line-height:1.25;margin:4px 0 6px}
+  .pbody .price{font-size:22px}
+  dl.det{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;margin:14px 0}
+  dl.det dt{color:var(--muted)}
+  dl.det dd{margin:0}
+  .actions{display:flex;flex-direction:column;gap:10px;padding:8px 20px 6px}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;height:50px;border-radius:999px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid var(--deep);background:var(--surface);color:var(--deep)}
+  .btn.primary{background:var(--deep);color:#fff}
+  .btn.wa{background:var(--green);border-color:var(--green);color:var(--green-ink)}
+  .btn svg{width:20px;height:20px}
+  .small{font-size:12px;color:var(--muted);text-align:center;margin:6px 20px 0}
+
+  .baglist{list-style:none;margin:0;padding:0 20px}
+  .baglist li{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+  .baglist img,.baglist .noimg{width:56px;height:56px;border-radius:10px;object-fit:cover;background:var(--photo)}
+  .baglist .t{font-size:13px;line-height:1.3}
+  .baglist .t b{display:block;font-size:14px}
+  .rm{border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline}
+  .total{display:flex;justify-content:space-between;padding:14px 20px;font-weight:700;font-size:17px}
+
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:24px 16px 140px;line-height:1.6}
+  .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <h1 class="brand" id="brand">Catálogo de Joias</h1>
+    <p class="tag" id="tagline">Pronta-entrega</p>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="wrap">
+    <label class="search">
+      <span class="vh">Buscar</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Buscar: coração, argola, zircônia, BR3844…" autocomplete="off">
+    </label>
+    <div class="chips" id="cats" role="group" aria-label="Categorias"></div>
+    <div class="row2">
+      <div class="seg" id="banhos" role="group" aria-label="Banho"></div>
+      <select class="sort" id="sort" aria-label="Ordenar">
+        <option value="cat">Ordenar: categoria</option>
+        <option value="asc">Menor preço</option>
+        <option value="desc">Maior preço</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <p class="count" id="count" aria-live="polite"></p>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>
+  <div id="foot"></div>
+</footer>
+
+<div class="bagbar" id="bagbar" hidden>
+  <button id="openBag" type="button"><span id="bagTxt"></span><span>Ver sacolinha →</span></button>
+</div>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Detalhes">
+  <div class="backdrop" data-close></div>
+  <div class="panel" id="panel"></div>
+</div>
+
+<script>
+/* Configuração: os valores padrão abaixo são substituídos pelo gerador (coletar.py) */
+const CONFIG = Object.assign({
+  nomeLoja: "Catálogo de Joias",
+  subtitulo: "Peças Veri · pronta-entrega",
+  whatsapp: "",          // só números, com DDI+DDD. ex.: "5519999999999"
+  atualizadoEm: ""
+}, {"atualizadoEm":"19/11/2026 às 09:51","nomeLoja":"Amana Passarinho · Joias Veri","subtitulo":"Pronta-entrega · peça pelo WhatsApp","whatsapp":"5519992034869"});
+
+const ITENS = [{"sku":"br003844-01-1200-1203-0000-02","modelo":"BR3844","descricao":"Olho grego vazado / zircônias Incolor / Safira","valor":69,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/cfe9f4309fc8cc15_c.jpg","fotos":["fotos/cfe9f4309fc8cc15.jpg","fotos/30559751183ff5aa.jpg","fotos/b8a53a1736885503.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br003658-01-0000-0000-0000-01","modelo":"BR3658","descricao":"Mini argola / Cruz","valor":59,"categoria":"Brinco","subcategoria":"Religioso","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/02456498b347e723_c.jpg","fotos":["fotos/02456498b347e723.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"cl000839-01-1200-0000-0000-01","modelo":"CL839","descricao":"Cruz / Ponto Luz","valor":149,"categoria":"Colar","subcategoria":null,"banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"https://selfclaudio.com/previas/2165-1.jpg","fotos":["https://selfclaudio.com/previas/2165-1.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl000997-04-0000-0000-0000-01","modelo":"PL997","descricao":"Mini medalhas diamantadas","valor":79,"categoria":"Pulseira","subcategoria":null,"banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/ab193d8fa9e3077f_c.jpg","fotos":["fotos/ab193d8fa9e3077f.jpg","fotos/bf1a0eabb2edca59.jpg"],"fotos_modelo":["fotos/6c2e2b2ea0ed21ee.jpg","fotos/172ae98993d4ff28.jpg","fotos/67966b2ed95ef4ff.jpg","fotos/3f6ba7e6140b552c.jpg","fotos/497e7e08117b3f6c.jpg","fotos/3c2a9b25634542fa.jpg"],"qtd":1},{"sku":"br004422-01-1200-0000-0000-02","modelo":"BR4422","descricao":"Argola detalhes / zircônia","valor":112,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/ada4dd8334e14e7a_c.jpg","fotos":["fotos/ada4dd8334e14e7a.jpg","fotos/5dc571d6f7a30824.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl001135-01-0000-0000-0000-02","modelo":"PL1135","descricao":"Cordão Baiano","valor":119,"categoria":"Pulseira","subcategoria":"Delicado","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/d16b8f61b62d5f2e_c.jpg","fotos":["fotos/d16b8f61b62d5f2e.jpg","fotos/a5ae2fb43f1a2579.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br004634-01-1200-0000-0000-03","modelo":"BR4634","descricao":"Oval detalhes / zircônias Incolor","valor":149,"categoria":"Brinco","subcategoria":"Grande","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/aa113c29c1fc63d5_c.jpg","fotos":["fotos/aa113c29c1fc63d5.jpg","fotos/14cd1d1bec8bee0c.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl000920-01-1200-0000-0000-02","modelo":"PL920","descricao":"Riviera zircônias Incolor / 2,50mm","valor":119,"categoria":"Pulseira","subcategoria":"Delicado","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/02fd7284919a86eb_c.jpg","fotos":["fotos/02fd7284919a86eb.jpg","fotos/60a0d46404751ffb.jpg"],"fotos_modelo":["fotos/951a55a53a94e297.jpg","fotos/a27ec041f20ef255.jpg"],"qtd":1},{"sku":"cl001491-04-0000-0000-0000-01","modelo":"CL1491","descricao":"Canutilhos / Micro esferas","valor":79,"categoria":"Colar","subcategoria":"Curto","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/9841d54750cb67bc_c.jpg","fotos":["fotos/9841d54750cb67bc.jpg","fotos/b3ae903660c4f2e6.jpg","fotos/ccbd085f9dbf10b0.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005157-01-1200-0000-0000-01","modelo":"BR5157","descricao":"Argola quadrada zircônias Incolor / 0,7","valor":79,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/c5e4b91209e38e71_c.jpg","fotos":["fotos/c5e4b91209e38e71.jpg","fotos/d3affb7610d4778f.jpg","fotos/b3ea197984020aa5.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005247-04-1253-0000-0000-02","modelo":"BR5247","descricao":"Redondo / zircônia Turmalina Fusion / 0,7","valor":84,"categoria":"Brinco","subcategoria":"Médio","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/00b76cc0fb437240_c.jpg","fotos":["fotos/00b76cc0fb437240.jpg","fotos/88c0f147c5fff650.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl000721-01-0000-0000-0000-02","modelo":"PL721","descricao":"Corações vazados interligados","valor":79,"categoria":"Pulseira","subcategoria":"Delicado","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/f383762a5165da11_c.jpg","fotos":["fotos/f383762a5165da11.jpg","fotos/830a908ef2fba5fe.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl001369-04-0000-0000-0000-02","modelo":"PL1369","descricao":"Pet / Cartier / Dog","valor":79,"categoria":"Pulseira","subcategoria":"Delicado","banho":"Ródio","aro":null,"colecao":"Pet","infantil":false,"capa":"fotos/7d078d4e55bdcaeb_c.jpg","fotos":["fotos/7d078d4e55bdcaeb.jpg","fotos/ab96df05a7ec9519.jpg","fotos/ee0c487053f4562e.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005546-01-0800-0000-0000-02","modelo":"BR5546","descricao":"Mira / Geométrico centro Pérola","valor":64,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":"Mira","infantil":false,"capa":"fotos/ac08426fea69f3e6_c.jpg","fotos":["fotos/ac08426fea69f3e6.jpg","fotos/a74d95c168ffa284.jpg","fotos/14004134bc6a1322.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005541-01-0803-0000-0000-03","modelo":"BR5541","descricao":"Mira / Círculos entrelaçados / penduricalho Pérola Glass","valor":74,"categoria":"Brinco","subcategoria":"Grande","banho":"Ouro","aro":null,"colecao":"Mira","infantil":false,"capa":"fotos/7c8319e6c2811af0_c.jpg","fotos":["fotos/7c8319e6c2811af0.jpg","fotos/519e15ae3f55c6eb.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"tn000049-01-0000-0000-0000-03","modelo":"TN49","descricao":"Grãos / Mini esferas","valor":84,"categoria":"Tornozeleira","subcategoria":"Delicado","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/b075abe935f49730_c.jpg","fotos":["fotos/b075abe935f49730.jpg","fotos/79a50b1849192964.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005674-01-0000-0000-0000-02","modelo":"BR5674","descricao":"Circulo texturizado","valor":139,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/87d183776b18ee66_c.jpg","fotos":["fotos/87d183776b18ee66.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"tn000054-04-0000-0000-0000-02","modelo":"TN54","descricao":"Mini estrelas","valor":59,"categoria":"Tornozeleira","subcategoria":"Delicado","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/8cb8879ce38cea26_c.jpg","fotos":["fotos/8cb8879ce38cea26.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005760-01-1200-0000-0000-02","modelo":"BR5760","descricao":"Argola penduricalhos zircônias Incolor / 1,1","valor":99,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/4237e11b05607744_c.jpg","fotos":["fotos/4237e11b05607744.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005787-04-0000-0000-0000-02","modelo":"BR5787","descricao":"Argola formato Coração / 0,8","valor":79,"categoria":"Brinco","subcategoria":"Argola","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/86159d43946b4273_c.jpg","fotos":["fotos/86159d43946b4273.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005813-04-1200-0000-0000-01","modelo":"BR5813","descricao":"Ponto Luz / detalhe / 0,4","valor":49,"categoria":"Brinco","subcategoria":"Pequeno","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/73b444c95cab6784_c.jpg","fotos":["fotos/73b444c95cab6784.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005844-04-1200-0000-0000-01","modelo":"BR5844","descricao":"Estrela zircônia Incolor","valor":59,"categoria":"Brinco","subcategoria":"Pequeno","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/d8f501f4fc7406e4_c.jpg","fotos":["fotos/d8f501f4fc7406e4.jpg"],"fotos_modelo":["fotos/c0f9b7d66a6794c0.jpg","fotos/4594a03fe598319c.jpg","fotos/39e605d15bea03b9.jpg"],"qtd":1},{"sku":"br005844-01-1200-0000-0000-01","modelo":"BR5844","descricao":"Estrela zircônia Incolor","valor":59,"categoria":"Brinco","subcategoria":"Pequeno","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"https://selfclaudio.com/previas/19786-1.jpg","fotos":["https://selfclaudio.com/previas/19786-1.jpg"],"fotos_modelo":["fotos/c0f9b7d66a6794c0.jpg","fotos/4594a03fe598319c.jpg","fotos/39e605d15bea03b9.jpg"],"qtd":1},{"sku":"pl001453-04-0000-0000-0000-02","modelo":"PL1453","descricao":"Grumet dupla","valor":129,"categoria":"Pulseira","subcategoria":"Correntaria","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/fab40f751982b09d_c.jpg","fotos":["fotos/fab40f751982b09d.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br002887-01-1200-0000-0000-01","modelo":"BR2887","descricao":"Borboleta vazada / zircônia Incolor","valor":49,"categoria":"Brinco","subcategoria":"Pequeno","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/f5ec84b2e238ee6e_c.jpg","fotos":["fotos/f5ec84b2e238ee6e.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005871-01-1200-0000-0000-01","modelo":"BR5871","descricao":"Gota zircônia Incolor / 0,7","valor":79,"categoria":"Brinco","subcategoria":"Pequeno","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/3b913873b55d8cf4_c.jpg","fotos":["fotos/3b913873b55d8cf4.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005876-04-1200-0000-0000-02","modelo":"BR5876","descricao":"Coração zircônia Incolor / 0,7","valor":49,"categoria":"Brinco","subcategoria":"Médio","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/9688f42a4917acfa_c.jpg","fotos":["fotos/9688f42a4917acfa.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005007-04-0000-0000-0000-01","modelo":"BR5007","descricao":"VQzinha / Argola formato Coração / 0,6","valor":45,"categoria":"Brinco","subcategoria":"Argola","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/cd3b2608a846578c_c.jpg","fotos":["fotos/cd3b2608a846578c.jpg","fotos/8c140ab0135e8478.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005962-04-1200-0000-0000-02","modelo":"BR5962","descricao":"Quadrado zircônia Incolor / 0,7","valor":89,"categoria":"Brinco","subcategoria":"Médio","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/a31b096e9ed66ef0_c.jpg","fotos":["fotos/a31b096e9ed66ef0.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005969-01-0000-0000-0000-01","modelo":"BR5969","descricao":"Piercing Liso Abaulado","valor":44,"categoria":"Brinco","subcategoria":"Piercing","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/4e676648b5294b13_c.jpg","fotos":["fotos/4e676648b5294b13.jpg","fotos/f5e6b51b3cfe8093.jpg"],"fotos_modelo":["fotos/57d00acd53251258.jpg","fotos/acab3b73ccd4d0e7.jpg","fotos/e5397844f67b7e7e.jpg","fotos/ff7d71ba31f3d7d2.jpg","fotos/97c6b8b1014aea4a.jpg","fotos/87c1682963489c96.jpg","fotos/af7a5f2daf56e1d5.jpg","fotos/369d4e2bd6d00f79.jpg","fotos/af7fbfdcb7f41697.jpg","fotos/ee3a12a63842f47f.jpg","fotos/8aea4f9d559ab03e.jpg","fotos/dbb778c667ab79fe.jpg","fotos/404874d5eccbd4ba.jpg","fotos/faed7c81d9612c98.jpg","fotos/703532c73bb9f39c.jpg","fotos/1f11b624170f3766.jpg","fotos/f2660e9d1e8711f0.jpg","fotos/5279c3b051cfb515.jpg","fotos/b46977d3f6fbb6e5.jpg","fotos/c6edbb7824208fcb.jpg","fotos/06cbdfcdf8b6347c.jpg"],"qtd":1},{"sku":"br005974-01-1200-0000-0000-02","modelo":"BR5974","descricao":"Colmeia Geométrica / zircônias Incolor","valor":98,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/58a65b06bfc07431_c.jpg","fotos":["fotos/58a65b06bfc07431.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005987-01-1200-0000-0000-01","modelo":"BR5987","descricao":"Argola detalhes / Ponto Luz / 0,6","valor":44,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/ed0a15f57f90bde8_c.jpg","fotos":["fotos/ed0a15f57f90bde8.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br004056-01-1200-0000-0000-01","modelo":"BR4056","descricao":"Argola Love / zircônias Incolor","valor":64,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/3ca15c110fe4bafb_c.jpg","fotos":["fotos/3ca15c110fe4bafb.jpg"],"fotos_modelo":[],"qtd":2},{"sku":"br006050-01-1200-1500-0000-02","modelo":"BR6050","descricao":"Trevos / zircônias Incolor / esmalte Madrepérola","valor":129,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/4db4708bd35e29db_c.jpg","fotos":["fotos/4db4708bd35e29db.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006059-01-1200-0000-0000-01","modelo":"BR6059","descricao":"Gota zircônia Incolor / 0,6","valor":59,"categoria":"Brinco","subcategoria":"Pequeno","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/84ee2c83ad4299e2_c.jpg","fotos":["fotos/84ee2c83ad4299e2.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl007580-01-0000-0000-0000-04","modelo":"PL7580","descricao":"Mini Esferas / 0,3","valor":89,"categoria":"Pulseira","subcategoria":"Correntaria","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/8edc4d48620d661e_c.jpg","fotos":["fotos/8edc4d48620d661e.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl001500-01-0000-0000-0000-04","modelo":"PL1500","descricao":"Dupla Esferas Facetadas","valor":89,"categoria":"Pulseira","subcategoria":"Delicada","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/9decf56c7a73483a_c.jpg","fotos":["fotos/9decf56c7a73483a.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl001524-01-1200-0000-0000-04","modelo":"PL1524","descricao":"Pontos de Luz / Mini Esferas Dupla / zircônia Incolor","valor":99,"categoria":"Pulseira","subcategoria":"Delicada","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/62f44593cd33d1de_c.jpg","fotos":["fotos/62f44593cd33d1de.jpg"],"fotos_modelo":["fotos/2bc7aa247812d668.jpg","fotos/eebf9123e2738a49.jpg","fotos/1e29e2bde01606bd.jpg","fotos/d73b2d7210e5f233.jpg"],"qtd":2},{"sku":"pl001505-01-1200-0000-0000-02","modelo":"PL1505","descricao":"Elos Cartier / Pingente Espirito Santo Zirconias Incolor","valor":119,"categoria":"Pulseira","subcategoria":"Símbolos","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/395d37dec80a0734_c.jpg","fotos":["fotos/395d37dec80a0734.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl001544-01-0000-0000-0000-02","modelo":"PL1544","descricao":"Elos entrelaçados / Fecho Boia","valor":149,"categoria":"Pulseira","subcategoria":"Correntaria","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/83c574531680c33b_c.jpg","fotos":["fotos/83c574531680c33b.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006102-01-1200-0000-0000-02","modelo":"BR6102","descricao":"Mini argola / Três zircônias Incolor / 0,8","valor":64,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/f481c9a3c026d67a_c.jpg","fotos":["fotos/f481c9a3c026d67a.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006356-01-0000-0000-0000-02","modelo":"BR6356","descricao":"Mini Argola / Coração Liso","valor":89,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/ebce4be0fa6ab9ff_c.jpg","fotos":["fotos/ebce4be0fa6ab9ff.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006356-04-0000-0000-0000-02","modelo":"BR6356","descricao":"Mini Argola / Coração Liso","valor":89,"categoria":"Brinco","subcategoria":"Argola","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/e797683628242b4e_c.jpg","fotos":["fotos/e797683628242b4e.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl001630-01-1209-0000-0000-04","modelo":"PL1630","descricao":"Elos / zircônias Coloridas","valor":89,"categoria":"Pulseira","subcategoria":"Delicada","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/69cc7cf4c7a1e5b3_c.jpg","fotos":["fotos/69cc7cf4c7a1e5b3.jpg"],"fotos_modelo":["fotos/60203a04753ce930.jpg","fotos/4e8f717c452b3cb0.jpg"],"qtd":1},{"sku":"br006424-01-1200-0000-0000-02","modelo":"BR6424","descricao":"Argola / Cravejada / Mini zircônias Incolor / G","valor":99,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/4e83dbbdb7c5da87_c.jpg","fotos":["fotos/4e83dbbdb7c5da87.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006428-01-1200-0000-0000-01","modelo":"BR6428","descricao":"Argola  Cravejada / Mini zircônias Incolor 1,0","valor":89,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/ad1acd033b35054e_c.jpg","fotos":["fotos/ad1acd033b35054e.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006514-04-0000-0000-0000-01","modelo":"BR6514","descricao":"Argola / zircônia Incolor","valor":89,"categoria":"Brinco","subcategoria":"Argola","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/5c1861004e3d4584_c.jpg","fotos":["fotos/5c1861004e3d4584.jpg"],"fotos_modelo":["fotos/88769d76acd8f77b.jpg","fotos/610cf98ce51b7af0.jpg"],"qtd":1},{"sku":"br006526-01-0000-0000-0000-01","modelo":"BR6526","descricao":"Geométrico / Quadrado / Quatro zircônia Incolor","valor":59,"categoria":"Brinco","subcategoria":"Pequeno","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/ecfc5b51e52cd844_c.jpg","fotos":["fotos/ecfc5b51e52cd844.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006426-01-1200-0800-0000-02","modelo":"BR6426","descricao":"Meia Argola / Detalhe Cravejado / Pérola / Mini zircônia Incolor","valor":89,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/870410aa0c7134b8_c.jpg","fotos":["fotos/870410aa0c7134b8.jpg"],"fotos_modelo":["fotos/c3b0f704159d3c70.jpg"],"qtd":1},{"sku":"br006427-01-0800-1200-0000-02","modelo":"BR6427","descricao":"Coração / Ponto de Luz / Pérola","valor":79,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/052d02ac41f501a4_c.jpg","fotos":["fotos/052d02ac41f501a4.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br003028-01-0800-0000-0000-01","modelo":"BR3028","descricao":"Mini Argola / Pérola / 0,7","valor":49,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/3fb5c99952e65ba7_c.jpg","fotos":["fotos/3fb5c99952e65ba7.jpg"],"fotos_modelo":["fotos/886785c7425daf89.jpg","fotos/8a739f695b5039e7.jpg"],"qtd":1},{"sku":"br006366-01-1200-0000-0000-01","modelo":"BR6366","descricao":"Argola / Cruz Lisa / zircônias Incolor","valor":69,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/44d0c64cc5e9088a_c.jpg","fotos":["fotos/44d0c64cc5e9088a.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006377-01-0000-0000-0000-02","modelo":"BR6377","descricao":"Argola torcida / 4,0","valor":119,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/731f7ee7b71cc3fd_c.jpg","fotos":["fotos/731f7ee7b71cc3fd.jpg"],"fotos_modelo":["fotos/b144e0a4a6ebd943.jpg"],"qtd":1},{"sku":"br006527-01-1200-0000-0000-02","modelo":"BR6527","descricao":"Argola / Cravejada / Ponto de luz","valor":89,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/c33625d9da0503c5_c.jpg","fotos":["fotos/c33625d9da0503c5.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006529-01-1200-1500-0000-02","modelo":"BR6529","descricao":"Coração Alongado / Borda Cravejada / zircônia Incolor / Madrepérola","valor":99,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/76790ae77116f702_c.jpg","fotos":["fotos/76790ae77116f702.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006588-01-1200-0000-0000-01","modelo":"BR6588","descricao":"Flor / Mini zircônias Incolor","valor":44,"categoria":"Brinco","subcategoria":"Pequeno","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/6e5d947189f8f3f1_c.jpg","fotos":["fotos/6e5d947189f8f3f1.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl001651-01-0337-0000-0000-04","modelo":"PL1651","descricao":"Cascalhos Azuis","valor":69,"categoria":"Pulseira","subcategoria":"Delicada","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/8aa5c59e165e7c2d_c.jpg","fotos":["fotos/8aa5c59e165e7c2d.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"an008921-01-1200-0000-0000-18","modelo":"AN8921","descricao":"Gotas / zircônia Incolor","valor":119,"categoria":"Anel","subcategoria":"Delicado","banho":"Ouro","aro":"18","colecao":null,"infantil":false,"capa":"fotos/dd6f77e28576a5ff_c.jpg","fotos":["fotos/dd6f77e28576a5ff.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006529-01-1200-2304-0000-02","modelo":"BR6529","descricao":"Coração Alongado / Borda Cravejada / zircônia Incolor / Madrepérola Azul","valor":99,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/404f9342c212c507_c.jpg","fotos":["fotos/404f9342c212c507.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006552-01-1200-0000-0000-01","modelo":"BR6552","descricao":"Duo / Triângulo Vazado / Triângulo Cravejado / zircônia Incolor","valor":69,"categoria":"Brinco","subcategoria":"Pequeno","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/55805bdf6ff3bdd7_c.jpg","fotos":["fotos/55805bdf6ff3bdd7.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006529-01-2306-0000-0000-02","modelo":"BR6529","descricao":"Coração Alongado / Borda Cravejada / zircônia Incolor / Madrepérola Black","valor":99,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/42e14aea17019191_c.jpg","fotos":["fotos/42e14aea17019191.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl001657-03-1203-1200-0000-04","modelo":"PL1657","descricao":"Prata 925 / Coração Cravejado / Três micro zircônias Safira","valor":137,"categoria":"Pulseira","subcategoria":"Delicada","banho":"Prata","aro":null,"colecao":null,"infantil":false,"capa":"fotos/be6ca08dfbe4fd36_c.jpg","fotos":["fotos/be6ca08dfbe4fd36.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"an008887-01-0000-0000-0000-01","modelo":"AN8887","descricao":"zircônia Central Quadrada / Incolor","valor":119,"categoria":"Anel","subcategoria":"Delicado","banho":"Ouro","aro":"01","colecao":null,"infantil":false,"capa":"fotos/952a6ed898e62fd7_c.jpg","fotos":["fotos/952a6ed898e62fd7.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"an008943-04-1200-0000-0000-22","modelo":"AN8943","descricao":"Solitário zircônia Incolor / 0,6","valor":69,"categoria":"Anel","subcategoria":"Solitário","banho":"Ródio","aro":"22","colecao":null,"infantil":false,"capa":"fotos/efce984581612824_c.jpg","fotos":["fotos/efce984581612824.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"an008948-03-1200-0000-0000-20","modelo":"AN8948","descricao":"Prata 925 / Cravejado / Três zircônias Redondas / Incolor","valor":170,"categoria":"Anel","subcategoria":"Delicado","banho":"Prata","aro":"20","colecao":null,"infantil":false,"capa":"fotos/0483bef7ca386dd9_c.jpg","fotos":["fotos/0483bef7ca386dd9.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"an001236-04-1200-0000-0000-24","modelo":"AN1236","descricao":"Solitário / zircônias Incolor","valor":69,"categoria":"Anel","subcategoria":"Aparador","banho":"Ródio","aro":"24","colecao":null,"infantil":false,"capa":"fotos/310334e16730effe_c.jpg","fotos":["fotos/310334e16730effe.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"cl002669-15-0000-0000-0000-01","modelo":"CL2669","descricao":"Dual / Elos Ovais / Coração Liso","valor":99,"categoria":"Colar","subcategoria":"Curto","banho":"Ouro e Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/2f572d798b09ec58_c.jpg","fotos":["fotos/2f572d798b09ec58.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl001670-01-0000-0000-0000-04","modelo":"PL1670","descricao":"Mini Tubos / Trabalhados / Cristais Azul Claro","valor":59,"categoria":"Pulseira","subcategoria":"Delicada","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/3830955be2f6fdc7_c.jpg","fotos":["fotos/3830955be2f6fdc7.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"cl002079-01-2306-0000-0000-01","modelo":"CL2079","descricao":"Coração Alongado / Borda Cravejada / zircônia Incolor / Madrepérola Black","valor":129,"categoria":"Colar","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/1bd97a14dc3a9691_c.jpg","fotos":["fotos/1bd97a14dc3a9691.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"cl002079-01-1500-0000-0000-01","modelo":"CL2079","descricao":"Coração Alongado / Borda Cravejada / zircônia Incolor / Madrepérola","valor":129,"categoria":"Colar","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/7b7a99c350833237_c.jpg","fotos":["fotos/7b7a99c350833237.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006187-01-2219-0000-0000-01","modelo":"BR6187","descricao":"Veri Kids / Flor Esmaltada / Verde Agua","valor":59,"categoria":"Brinco","subcategoria":"Pequeno","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/8ade222dc33906db_c.jpg","fotos":["fotos/8ade222dc33906db.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br006178-01-2219-0000-0000-02","modelo":"BR6178","descricao":"Veri Kids / Donuts Esmaltado / Detalhes / zircônia Incolor / verde agua","valor":59,"categoria":"Brinco","subcategoria":"Pequeno","banho":"Ouro","aro":null,"colecao":null,"infantil":true,"capa":"fotos/d576041ab89a1e4e_c.jpg","fotos":["fotos/d576041ab89a1e4e.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"an008831-04-2202-0000-0000-12","modelo":"AN8831","descricao":"Veri Kids / Flor Esmaltada / Verde agua","valor":54,"categoria":"Anel","subcategoria":"Delicado","banho":"Ródio","aro":"12","colecao":null,"infantil":true,"capa":"fotos/9cb823751bc6c8ec_c.jpg","fotos":["fotos/9cb823751bc6c8ec.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl001527-01-1209-0000-0000-04","modelo":"PL1527","descricao":"Baguetes Multicores","valor":69,"categoria":"Pulseira","subcategoria":"Delicada","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/8df79e86e47213d9_c.jpg","fotos":["fotos/8df79e86e47213d9.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"cl002001-01-1209-0000-0000-01","modelo":"CL2001","descricao":"Baguetes Multicores","valor":139,"categoria":"Colar","subcategoria":"Curto","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/6bf79525ff9747fe_c.jpg","fotos":["fotos/6bf79525ff9747fe.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl001523-01-1200-1209-0000-04","modelo":"PL1523","descricao":"Navetes Multicores","valor":69,"categoria":"Pulseira","subcategoria":"Delicada","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/b5aeae0d77fd0291_c.jpg","fotos":["fotos/b5aeae0d77fd0291.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005841-04-1200-1207-0000-02","modelo":"BR5841","descricao":"Redondo entorno Baguettes / zircônia Esmeralda","valor":109,"categoria":"Brinco","subcategoria":"Médio","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/552d7cd5a783946b_c.jpg","fotos":["fotos/552d7cd5a783946b.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005897-04-0000-0000-0000-02","modelo":"BR5897","descricao":"Curvado Minimalista / pontilhado","valor":139,"categoria":"Brinco","subcategoria":"Médio","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/28758494bbfbd01c_c.jpg","fotos":["fotos/28758494bbfbd01c.jpg","fotos/a5b0a4138e48b100.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005568-01-0000-0000-0000-02","modelo":"BR5568","descricao":"Triangular Abaulado","valor":99,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/64ef40b49636ed1a_c.jpg","fotos":["fotos/64ef40b49636ed1a.jpg","fotos/d2f9004bb1144b59.jpg","fotos/ab082b9eab83e6e1.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005867-01-0000-0000-0000-03","modelo":"BR5867","descricao":"Looping","valor":64,"categoria":"Brinco","subcategoria":"Grande","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/42a814359dcfb4fd_c.jpg","fotos":["fotos/42a814359dcfb4fd.jpg"],"fotos_modelo":["fotos/32acac65907cc7f1.jpg"],"qtd":1},{"sku":"pl001445-01-1202-0000-0000-02","modelo":"PL1445","descricao":"Believe / Amor / Elos / zircônias Rosa","valor":129,"categoria":"Pulseira","subcategoria":"Delicado","banho":"Ouro","aro":null,"colecao":"Believe","infantil":false,"capa":"fotos/f401f52a3871999a_c.jpg","fotos":["fotos/f401f52a3871999a.jpg","fotos/97f043bc2da8cd10.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005487-01-1200-0000-0000-02","modelo":"BR5487","descricao":"Argola detalhes / zircônias incolor","valor":129,"categoria":"Brinco","subcategoria":"Argola","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/8b6eac6e64d61159_c.jpg","fotos":["fotos/8b6eac6e64d61159.jpg","fotos/7681c94e26efc2b0.jpg","fotos/95d6af88676dbe65.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005054-01-1200-0000-0000-02","modelo":"BR5054","descricao":"Circulo zircônias Incolor / 0,5","valor":59,"categoria":"Brinco","subcategoria":"Médio","banho":"Ouro","aro":null,"colecao":null,"infantil":false,"capa":"fotos/b38af784e19d269f_c.jpg","fotos":["fotos/b38af784e19d269f.jpg","fotos/6c2778f3836ed70b.jpg","fotos/484ad94f2c118f85.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"br005265-04-0000-0000-0000-03","modelo":"BR5265","descricao":"Abstrato liso","valor":119,"categoria":"Brinco","subcategoria":"Grande","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/18b4846e4d34b31f_c.jpg","fotos":["fotos/18b4846e4d34b31f.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"cl000535-04-1200-0000-0000-03","modelo":"CL535","descricao":"Regulável terminal zircônia Incolor","valor":119,"categoria":"Colar","subcategoria":"Gravatinha","banho":"Ródio","aro":null,"colecao":null,"infantil":false,"capa":"fotos/77726b87456502cd_c.jpg","fotos":["fotos/77726b87456502cd.jpg","fotos/aa0606e76bbddded.jpg","fotos/8c8d40be8a0081aa.jpg","fotos/f3e206235a9445da.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"pl001191-01-1200-0000-0000-02","modelo":"PL1191","descricao":"VQzinha / Coração / Ponto Luz / zircônia Incolor","valor":68,"categoria":"Pulseira","subcategoria":"Delicado","banho":"Ouro","aro":"M","colecao":"Vqzinha","infantil":true,"capa":"fotos/f850fa5453c9bd6a_c.jpg","fotos":["fotos/f850fa5453c9bd6a.jpg","fotos/33e6008c5a75b5a1.jpg"],"fotos_modelo":[],"qtd":1},{"sku":"cl001096-01-0000-0000-0000-01","modelo":"CL1096","descricao":"VQzinha / Mini Corações","valor":79,"categoria":"Colar","subcategoria":"Curto","banho":"Ouro","aro":null,"colecao":"Vqzinha","infantil":true,"capa":"fotos/6d83e2a6e753dcb9_c.jpg","fotos":["fotos/6d83e2a6e753dcb9.jpg","fotos/95592666f852a3be.jpg"],"fotos_modelo":[],"qtd":1}];
+
+const brl = new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+
+const CAT_ORDEM = ["Brinco","Colar","Pulseira","Anel","Tornozeleira"];
+const PLURAL = {Brinco:"Brincos",Colar:"Colares",Pulseira:"Pulseiras",Anel:"Anéis",Tornozeleira:"Tornozeleiras"};
+const state = { cat:"Todos", banho:"Todos", q:"", sort:"cat", bag:new Map() };
+
+function dotClass(b){ const n=norm(b); if(n.includes("ouro") && n.includes("rodio")) return "misto"; if(n.includes("ouro")) return "ouro"; if(n.includes("rodio")) return "rodio"; return "prata"; }
+const GEM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 6 3-6M12 21 9 9m3 12 3-12"/></svg>';
+function noImg(modelo){ return `<div class="noimg"><div>${GEM}${esc(modelo)}</div></div>`; }
+function img(src, alt, modelo, eager){
+  return `<img src="${esc(src)}" alt="${esc(alt)}" ${eager?"":'loading="lazy"'} decoding="async" referrerpolicy="no-referrer" onerror="this.outerHTML=noImg('${esc(modelo)}')">`;
+}
+function rotulo(i){ return `${i.modelo} – ${i.descricao} (${i.banho}${i.aro?`, aro ${i.aro}`:""})`; }
+function waLink(texto){ const n=(CONFIG.whatsapp||"").replace(/\D/g,""); return `https://wa.me/${n}?text=${encodeURIComponent(texto)}`; }
+
+/* ---------- Filtros ---------- */
+function renderFiltros(){
+  const cats = {};
+  ITENS.forEach(i => cats[i.categoria] = (cats[i.categoria]||0) + i.qtd);
+  const ordem = Object.keys(cats).sort((a,b)=> (CAT_ORDEM.indexOf(a)+99)%99 - (CAT_ORDEM.indexOf(b)+99)%99 || a.localeCompare(b));
+  const total = ITENS.reduce((s,i)=>s+i.qtd,0);
+  const infantil = ITENS.filter(i=>i.infantil).reduce((s,i)=>s+i.qtd,0);
+  const lista = [["Todos",total], ...ordem.map(c=>[c,cats[c]]), ...(infantil?[["Infantil",infantil]]:[])];
+  $("#cats").innerHTML = lista.map(([c,n]) => `<button type="button" class="chip" data-cat="${esc(c)}" aria-pressed="${state.cat===c}">${esc(PLURAL[c]||c)}<small>${n}</small></button>`).join("");
+
+  const banhos = ["Todos", ...[...new Set(ITENS.map(i=>i.banho).filter(Boolean))].sort((a,b)=>a.localeCompare(b))];
+  $("#banhos").innerHTML = banhos.map(b => `<button type="button" class="chip" data-banho="${esc(b)}" aria-pressed="${state.banho===b}">${b==="Todos"?"Todos os banhos":`<span class="dot ${dotClass(b)}"></span> ${esc(b)}`}</button>`).join("");
+}
+
+function filtrados(){
+  const q = norm(state.q).trim();
+  let r = ITENS.filter(i =>
+    (state.cat==="Todos" || (state.cat==="Infantil" ? i.infantil : i.categoria===state.cat)) &&
+    (state.banho==="Todos" || i.banho===state.banho) &&
+    (!q || q.split(/\s+/).every(t => norm([i.modelo,i.descricao,i.categoria,i.subcategoria,i.banho,i.colecao].join(" ")).includes(t)))
+  );
+  if(state.sort==="asc") r.sort((a,b)=>a.valor-b.valor);
+  else if(state.sort==="desc") r.sort((a,b)=>b.valor-a.valor);
+  else r.sort((a,b)=> (CAT_ORDEM.indexOf(a.categoria)+99)%99 - (CAT_ORDEM.indexOf(b.categoria)+99)%99 || a.valor-b.valor);
+  return r;
+}
+
+/* ---------- Grade ---------- */
+const PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>';
+
+function renderGrade(){
+  const r = filtrados();
+  const pecas = r.reduce((s,i)=>s+i.qtd,0);
+  $("#count").textContent = r.length ? (pecas===1 ? "1 peça disponível" : `${pecas} peças disponíveis`) : "";
+  if(!r.length){ $("#grid").innerHTML = `<div class="empty" style="grid-column:1/-1">Nenhuma peça encontrada com esses filtros.</div>`; return; }
+  $("#grid").innerHTML = r.map((i,ix) => {
+    const on = state.bag.has(i.sku);
+    const badges = [
+      i.qtd>1 ? `<span class="badge">${i.qtd} unidades</span>` : "",
+      i.fotos_modelo.length ? `<span class="badge gold">Foto com modelo</span>` : "",
+      i.infantil ? `<span class="badge">Infantil</span>` : ""
+    ].join("");
+    return `<article class="card">
+      <button type="button" class="open" data-open="${esc(i.sku)}" aria-label="Ver ${esc(rotulo(i))}">
+        <div class="ph">${(i.capa||i.fotos[0]) ? img(i.capa||i.fotos[0], i.descricao, i.modelo, ix<6) : noImg(i.modelo)}<div class="badges">${badges}</div></div>
+        <div class="info">
+          <div class="price">${brl.format(i.valor)}</div>
+          <div class="desc">${esc(i.descricao)}</div>
+          <div class="meta"><span class="dot ${dotClass(i.banho)}"></span>${esc(i.banho||"")}${i.aro?` · Aro ${esc(i.aro)}`:""} · ${esc(i.modelo)}</div>
+        </div>
+      </button>
+      <button type="button" class="add ${on?"on":""}" data-toggle="${esc(i.sku)}" aria-label="${on?"Remover da":"Adicionar à"} sacolinha" aria-pressed="${on}">${on?CHECK:PLUS}</button>
+    </article>`;
+  }).join("");
+}
+
+/* ---------- Sacolinha ---------- */
+function bagItens(){ return [...state.bag.keys()].map(k => ITENS.find(i=>i.sku===k)).filter(Boolean); }
+function renderBagBar(){
+  const it = bagItens(); const tot = it.reduce((s,i)=>s+i.valor,0);
+  $("#bagbar").hidden = !it.length;
+  $("#bagTxt").textContent = `${it.length} ${it.length===1?"peça":"peças"} · ${brl.format(tot)}`;
+}
+function toggle(sku){ state.bag.has(sku) ? state.bag.delete(sku) : state.bag.set(sku,1); renderGrade(); renderBagBar(); }
+
+const WA = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.8-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>';
+
+function abrirSacolinha(){
+  const it = bagItens(); const tot = it.reduce((s,i)=>s+i.valor,0);
+  const msg = "Olá! Separei estas peças do catálogo:\n" + it.map(i=>`• ${rotulo(i)} – ${brl.format(i.valor)}`).join("\n") + `\n\nTotal: ${brl.format(tot)}`;
+  $("#panel").innerHTML = `
+    <button class="close" data-close aria-label="Fechar">×</button>
+    <div class="pbody"><h2>Sua sacolinha</h2></div>
+    ${it.length ? `<ul class="baglist">${it.map(i=>`<li>
+        ${(i.capa||i.fotos[0])?img(i.capa||i.fotos[0],i.descricao,i.modelo,true):noImg(i.modelo)}
+        <div class="t"><b>${brl.format(i.valor)}</b>${esc(i.descricao)}<br><span style="color:var(--muted)">${esc(i.banho)} · ${esc(i.modelo)}</span></div>
+        <button class="rm" data-rm="${esc(i.sku)}">remover</button></li>`).join("")}</ul>
+      <div class="total"><span>Total</span><span>${brl.format(tot)}</span></div>
+      <div class="actions"><a class="btn wa" href="${waLink(msg)}" target="_blank" rel="noopener">${WA} Enviar pedido pelo WhatsApp</a></div>
+      <p class="small">A disponibilidade é confirmada pela vendedora na conversa.</p>`
+    : `<p class="small" style="padding:20px 0 30px">Sua sacolinha está vazia.</p>`}`;
+  abrir();
+}
+
+/* ---------- Detalhe ---------- */
+function abrirPeca(sku){
+  const i = ITENS.find(x=>x.sku===sku); if(!i) return;
+  const fotos = [...i.fotos.map(u=>({u,m:false})), ...i.fotos_modelo.map(u=>({u,m:true}))];
+  const on = state.bag.has(i.sku);
+  const linhas = [
+    ["Código", i.modelo],
+    ["Categoria", [i.categoria, i.subcategoria].filter(Boolean).join(" · ")],
+    ["Banho", i.banho],
+    i.aro ? ["Aro / tamanho", i.aro] : null,
+    i.colecao ? ["Coleção", i.colecao] : null,
+    i.qtd>1 ? ["Disponível", `${i.qtd} unidades`] : null
+  ].filter(Boolean);
+  $("#panel").innerHTML = `
+    <button class="close" data-close aria-label="Fechar">×</button>
+    <div class="carousel" id="car">${fotos.length ? fotos.map((f,ix)=>`<div class="slide">${img(f.u, i.descricao, i.modelo, ix===0)}${f.m?'<span class="badge gold lbl">Foto com modelo</span>':""}</div>`).join("") : `<div class="slide">${noImg(i.modelo)}</div>`}</div>
+    ${fotos.length>1 ? `<div class="dots" id="dots">${fotos.map((_,ix)=>`<span class="${ix?"":"on"}"></span>`).join("")}</div>` : ""}
+    <div class="pbody">
+      <div class="price">${brl.format(i.valor)}</div>
+      <h2>${esc(i.descricao)}</h2>
+      <dl class="det">${linhas.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+    </div>
+    <div class="actions">
+      <a class="btn wa" href="${waLink(`Olá! Tenho interesse nesta peça do catálogo:\n• ${rotulo(i)} – ${brl.format(i.valor)}`)}" target="_blank" rel="noopener">${WA} Quero esta peça</a>
+      <button type="button" class="btn ${on?"":"primary"}" data-toggle-detail="${esc(i.sku)}">${on?"Remover da sacolinha":"Adicionar à sacolinha"}</button>
+    </div>`;
+  abrir();
+  const car = $("#car"), dots = $("#dots");
+  if(car && dots) car.addEventListener("scroll", () => {
+    const k = Math.round(car.scrollLeft / car.clientWidth);
+    [...dots.children].forEach((d,ix)=>d.classList.toggle("on", ix===k));
+  }, {passive:true});
+}
+
+let ultimoFoco = null;
+function abrir(){ ultimoFoco = document.activeElement; $("#sheet").classList.add("open"); document.body.style.overflow="hidden"; $("#panel").scrollTop=0; setTimeout(()=>$("#panel .close")?.focus(),30); }
+function fechar(){ $("#sheet").classList.remove("open"); document.body.style.overflow=""; ultimoFoco?.focus?.(); }
+
+/* ---------- Eventos ---------- */
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-cat],[data-banho],[data-open],[data-toggle],[data-toggle-detail],[data-close],[data-rm],#openBag");
+  if(!t) return;
+  if(t.dataset.cat){ state.cat=t.dataset.cat; renderFiltros(); renderGrade(); }
+  else if(t.dataset.banho){ state.banho=t.dataset.banho; renderFiltros(); renderGrade(); }
+  else if(t.dataset.open){ abrirPeca(t.dataset.open); }
+  else if(t.dataset.toggle){ toggle(t.dataset.toggle); }
+  else if(t.dataset.toggleDetail){ toggle(t.dataset.toggleDetail); abrirPeca(t.dataset.toggleDetail); }
+  else if(t.dataset.rm){ toggle(t.dataset.rm); bagItens().length ? abrirSacolinha() : fechar(); }
+  else if(t.id==="openBag"){ abrirSacolinha(); }
+  else if("close" in t.dataset){ fechar(); }
+});
+document.addEventListener("keydown", e => { if(e.key==="Escape" && $("#sheet").classList.contains("open")) fechar(); });
+$("#q").addEventListener("input", e => { state.q=e.target.value; renderGrade(); });
+$("#sort").addEventListener("change", e => { state.sort=e.target.value; renderGrade(); });
+
+/* ---------- Início ---------- */
+document.title = CONFIG.nomeLoja;
+$("#brand").textContent = CONFIG.nomeLoja;
+$("#tagline").textContent = CONFIG.subtitulo;
+$("#foot").innerHTML = `Preços em reais. Disponibilidade confirmada no atendimento.${CONFIG.atualizadoEm ? `<br>Atualizado em ${esc(CONFIG.atualizadoEm)}.` : ""}`;
+renderFiltros(); renderGrade(); renderBagBar();
+</script>
+</body>
+</html>
