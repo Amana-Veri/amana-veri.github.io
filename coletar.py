@@ -327,8 +327,8 @@ def main():
     meta = {
         "versao": assinatura,
         "site": url_do_site(),
-        "descricao": f"{resumo['pecas_no_catalogo']} peças a pronta-entrega. "
-                     + config.get("subtitulo", "Peças Veri · pronta-entrega"),
+        "descricao": ("Consultora Veri · " if config.get("logo") else "")
+                     + f"{resumo['pecas_no_catalogo']} peças a pronta-entrega. Peça pelo WhatsApp.",
     }
     tmp = saida / "index.html.tmp"
     tmp.write_text(gerar_html(itens, config, meta=meta), encoding="utf-8")
