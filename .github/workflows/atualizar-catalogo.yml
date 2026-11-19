@@ -1,0 +1,50 @@
+name: Atualizar catálogo
+
+on:
+  schedule:
+    - cron: "17 10,21 * * *"   # 07:17 e 18:17 no horário de Brasília (o GitHub usa UTC)
+  workflow_dispatch:           # botão "Run workflow" para atualizar na hora
+
+permissions:
+  contents: write
+
+concurrency:
+  group: catalogo
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Coletar inventário e gerar catálogo
+        env:
+          VQ_CPF: ${{ secrets.VQ_CPF }}
+          VQ_SENHA: ${{ secrets.VQ_SENHA }}
+          VQ_INVENTARIO: ${{ vars.VQ_INVENTARIO }}
+          VQ_URL_MATERIAIS: ${{ vars.VQ_URL_MATERIAIS }}
+          VQ_NOME_LOJA: ${{ vars.VQ_NOME_LOJA }}
+          VQ_SUBTITULO: ${{ vars.VQ_SUBTITULO }}
+          VQ_WHATSAPP: ${{ vars.VQ_WHATSAPP }}
+        run: python coletar.py --saida docs --baixar-fotos
+
+      - name: Publicar
+        run: |
+          git config user.name "catalogo-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs
+          if git diff --cached --quiet; then
+            echo "Nada mudou."
+          else
+            git commit -m "Atualiza catálogo"
+            git push
+          fi
