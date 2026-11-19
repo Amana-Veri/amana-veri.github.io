@@ -177,6 +177,7 @@ def main():
     ap.add_argument("--baixar-fotos", action="store_true", help="baixa e comprime as fotos (precisa de Pillow)")
     ap.add_argument("--diagnostico", action="store_true", help="mostra o formato da resposta do login, sem valores")
     ap.add_argument("--min-pecas", type=int, default=1, help="aborta se vierem menos peças que isso (padrão: 1)")
+    ap.add_argument("--sem-fotos-site", action="store_true", help="não procura fotos no site oficial da Veri")
     args = ap.parse_args()
 
     api = os.environ.get("VQ_API", API_PADRAO).rstrip("/")
@@ -228,12 +229,17 @@ def main():
     if resumo["pecas_no_catalogo"] < args.min_pecas:
         raise Falha(f"Só {resumo['pecas_no_catalogo']} peça(s) disponível(is); mantive o catálogo anterior.")
 
-    # 5. Fotos locais comprimidas (opcional)
+    # 5. Fotos oficiais do site da Veri, quando o SKU da peça existe lá (senão ficam as do app)
+    if not args.sem_fotos_site:
+        from fotos_site import aplicar
+        resumo.update(aplicar(itens, PASTA / "cache_site.json"))
+
+    # 6. Fotos locais comprimidas (opcional)
     if args.baixar_fotos:
         from fotos import processar_fotos
         resumo.update(processar_fotos(itens, saida / "fotos", prefixo="fotos/"))
 
-    # 6. Grava o catálogo (escreve num temporário e troca, para nunca deixar arquivo pela metade)
+    # 7. Grava o catálogo (escreve num temporário e troca, para nunca deixar arquivo pela metade)
     agora = datetime.now(FUSO_BR)
     config = {"atualizadoEm": agora.strftime("%d/%m/%Y às %H:%M")}
     for chave, env in (("nomeLoja", "VQ_NOME_LOJA"), ("subtitulo", "VQ_SUBTITULO"), ("whatsapp", "VQ_WHATSAPP")):

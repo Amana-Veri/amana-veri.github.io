@@ -23,6 +23,8 @@ App da marca (API) ──login──> coletar.py ──> docs/index.html + docs/
 | `coletar.py` | login, busca do inventário, travas de segurança, grava `docs/index.html` |
 | `build_catalogo.py` | filtra e agrupa as peças (só campos públicos) e monta o HTML |
 | `fotos.py` | baixa e comprime as fotos (capa 500 px, detalhe 1200 px) |
+| `fotos_site.py` | troca pelas fotos do site oficial (porveri.com.br) quando o SKU da peça existe lá |
+| `cache_site.json` | criado sozinho: índice SKU → página do site, refeito a cada 7 dias |
 | `template.html` | visual do catálogo |
 | `materiais.json` | cópia de reserva das fotos com modelo, usada só se a chamada `material-divulgacao` falhar |
 | `.github/workflows/atualizar-catalogo.yml` | agendamento e publicação |
@@ -53,6 +55,13 @@ App da marca (API) ──login──> coletar.py ──> docs/index.html + docs/
    O link aparece nessa mesma tela em alguns minutos.
 
 Pronto: o catálogo se atualiza às 07h e às 18h. Para atualizar na hora, use o **Run workflow**.
+
+## Fotos do site oficial
+
+O site da Veri usa o mesmo SKU do app. Quando a peça existe lá com o mesmo modelo, banho e pedra,
+o catálogo usa as fotos oficiais; senão, as do app. O índice do site é lido pelas páginas de listagem
+(a busca do site é proibida para robôs no robots.txt e não é usada), com pausa entre páginas, e só é
+refeito a cada 7 dias ou quando chega peça nova. Para forçar: apague `cache_site.json` e rode o workflow.
 
 ## Quando algo mudar
 
