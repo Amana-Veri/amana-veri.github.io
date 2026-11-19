@@ -42,6 +42,7 @@ jobs:
           git config user.name "catalogo-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs
+          if [ -f cache_site.json ]; then git add cache_site.json; fi
           if git diff --cached --quiet; then
             echo "Nada mudou."
           else
