@@ -2,7 +2,9 @@ name: Atualizar catálogo
 
 on:
   schedule:
-    - cron: "17 10,21 * * *"   # 07:17 e 18:17 no horário de Brasília (o GitHub usa UTC)
+    # a cada 30 min, das 07:07 às 22:37 no horário de Brasília (o GitHub usa UTC, 3h a mais)
+    - cron: "7,37 10-23 * * *"
+    - cron: "7,37 0,1 * * *"
   workflow_dispatch:           # botão "Run workflow" para atualizar na hora
 
 permissions:
