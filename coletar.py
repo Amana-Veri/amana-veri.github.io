@@ -36,7 +36,8 @@ from pathlib import Path
 
 PASTA = Path(__file__).resolve().parent
 sys.path.insert(0, str(PASTA))
-from build_catalogo import montar, gerar_html, LIMITE_FOTO_DIVULGACAO  # noqa: E402
+from build_catalogo import montar, gerar_html, extrair_pecas, preparar_imagens, LIMITE_FOTO_DIVULGACAO, TEMPLATE  # noqa: E402
+import hashlib  # noqa: E402
 
 API_PADRAO = "https://gestvendas17.com.br/api/app/v3"
 ORIGEM_APP = "https://vq-app.vercel.app"
@@ -146,11 +147,30 @@ def estrutura(obj, nivel=0):
 
 
 def achar_inventarios(obj, achados=None):
-    achados = set() if achados is None else achados
+    """Ids de inventário em qualquer campo com 'invent' no nome:
+    "inventario_id": 1, "inventario": {"id": 1}, "inventarios": [{"id": 1}, ...]. Mantém a ordem."""
+    achados = [] if achados is None else achados
+
+    def anotar(v):
+        v = str(v)
+        if v.isdigit() and v not in achados:
+            achados.append(v)
+
     if isinstance(obj, dict):
         for k, v in obj.items():
-            if "invent" in str(k).lower() and isinstance(v, (int, str)) and str(v).isdigit():
-                achados.add(str(v))
+            if "invent" in str(k).lower():
+                if isinstance(v, (int, str)):
+                    anotar(v)
+                elif isinstance(v, dict):
+                    if "id" in v:
+                        anotar(v["id"])
+                    achar_inventarios(v, achados)
+                elif isinstance(v, list):
+                    for e in v:
+                        if isinstance(e, dict) and "id" in e:
+                            anotar(e["id"])
+                        elif isinstance(e, (int, str)):
+                            anotar(e)
             else:
                 achar_inventarios(v, achados)
     elif isinstance(obj, list):
@@ -168,6 +188,19 @@ def credenciais():
     if not cpf or not senha:
         raise Falha("Faltam VQ_CPF e/ou VQ_SENHA.")
     return "".join(c for c in cpf if c.isdigit()), senha
+
+
+def url_do_site():
+    """Endereço público do catálogo, para a prévia do link no WhatsApp."""
+    if os.environ.get("VQ_URL_SITE", "").strip():
+        return os.environ["VQ_URL_SITE"].strip().rstrip("/") + "/"
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    if "/" in repo:
+        dono, nome = repo.split("/", 1)
+        if nome.lower() == f"{dono.lower()}.github.io":
+            return f"https://{nome.lower()}/"
+        return f"https://{dono.lower()}.github.io/{nome}/"
+    return ""
 
 
 # ---------------------------------------------------------------- Principal
@@ -198,17 +231,50 @@ def main():
     validade = validade_jwt(token)
     print("Login OK." + (f" Token válido até {validade:%d/%m/%Y %H:%M}." if validade else ""))
 
-    # 2. Inventário
-    inventario = os.environ.get("VQ_INVENTARIO", "").strip()
-    if not inventario:
-        candidatos = achar_inventarios(login)
-        if len(candidatos) == 1:
-            inventario = candidatos.pop()
-            print(f"Inventário encontrado no login: {inventario}")
-        else:
-            raise Falha(f"Defina VQ_INVENTARIO (achei no login: {sorted(candidatos) or 'nenhum'}).")
+    # 2. Inventário: descobre o atual pelo próprio app (dashboard/perfil).
+    #    A variável VQ_INVENTARIO fica só como reserva, se a descoberta não funcionar.
+    candidatos, origem = [], {}
 
-    resp_pecas = chamar("GET", f"{api}/inventarios/{inventario}/pecas", token=token)
+    def anotar(ids, fonte):
+        for x in ids:
+            if x not in candidatos:
+                candidatos.append(x)
+                origem[x] = fonte
+
+    anotar(achar_inventarios(login), "login")
+    respostas = {}
+    for rota in ("dashboard", "perfil"):
+        try:
+            respostas[rota] = chamar("GET", f"{api}/{rota}", token=token)
+        except Falha as e:
+            print(f"Aviso: /{rota} indisponível ({e}).")
+            continue
+        anotar(achar_inventarios(respostas[rota]), rota)
+    if args.diagnostico or not candidatos:
+        for rota, resp in respostas.items():
+            print(f"Formato de /{rota} (só nomes de campos, sem valores):")
+            print(estrutura(resp))
+    reserva = os.environ.get("VQ_INVENTARIO", "").strip()
+    if reserva:
+        anotar([reserva], "variável VQ_INVENTARIO")
+    if not candidatos:
+        raise Falha("Não achei o número do inventário no app. Defina a variável VQ_INVENTARIO.")
+
+    resp_pecas, inventario = None, None
+    for inv in candidatos:
+        try:
+            r = chamar("GET", f"{api}/inventarios/{inv}/pecas", token=token)
+            if extrair_pecas(r):
+                resp_pecas, inventario = r, inv
+                break
+            print(f"Inventário {inv} ({origem[inv]}) veio sem peças.")
+        except (Falha, ValueError) as e:
+            print(f"Inventário {inv} ({origem[inv]}) não serviu: {e}")
+    if resp_pecas is None:
+        raise Falha(f"Nenhum inventário com peças entre {candidatos}; mantive o catálogo anterior.")
+    print(f"Inventário {inventario} (achado em: {origem[inventario]}).")
+    if reserva and reserva != inventario:
+        print(f"Obs.: a variável VQ_INVENTARIO ({reserva}) está desatualizada; usei {inventario}.")
 
     # 3. Material de divulgação (fotos com modelo). Se falhar, usa a cópia de reserva.
     materiais = None
@@ -239,20 +305,38 @@ def main():
         from fotos import processar_fotos
         resumo.update(processar_fotos(itens, saida / "fotos", prefixo="fotos/"))
 
-    # 7. Grava o catálogo (escreve num temporário e troca, para nunca deixar arquivo pela metade)
-    agora = datetime.now(FUSO_BR)
-    config = {"atualizadoEm": agora.strftime("%d/%m/%Y às %H:%M")}
+    # 7. Textos, foto da revendedora e logo (pasta assets/)
+    config = {}
     for chave, env in (("nomeLoja", "VQ_NOME_LOJA"), ("subtitulo", "VQ_SUBTITULO"), ("whatsapp", "VQ_WHATSAPP")):
         if os.environ.get(env, "").strip():
             config[chave] = os.environ[env].strip()
     saida.mkdir(parents=True, exist_ok=True)
+    config.update(preparar_imagens(PASTA / "assets", saida))
+
+    # 8. Grava o catálogo só se algo mudou (peças, preços, fotos, textos ou visual).
+    #    Assim não sai commit a cada 30 min à toa, e "Atualizado em" mostra a última mudança real.
+    assinatura = hashlib.sha1(json.dumps(
+        {"itens": itens, "config": config, "tpl": TEMPLATE.read_text(encoding="utf-8")},
+        sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
+    destino = saida / "index.html"
+    if destino.exists() and f'name="versao-conteudo" content="{assinatura}"' in destino.read_text(encoding="utf-8"):
+        print(json.dumps(resumo, ensure_ascii=False, indent=1))
+        print("Nada mudou no catálogo desde a última atualização; página mantida.")
+        return
+    config["atualizadoEm"] = datetime.now(FUSO_BR).strftime("%d/%m/%Y às %H:%M")
+    meta = {
+        "versao": assinatura,
+        "site": url_do_site(),
+        "descricao": f"{resumo['pecas_no_catalogo']} peças a pronta-entrega. "
+                     + config.get("subtitulo", "Peças Veri · pronta-entrega"),
+    }
     tmp = saida / "index.html.tmp"
-    tmp.write_text(gerar_html(itens, config), encoding="utf-8")
-    tmp.replace(saida / "index.html")
+    tmp.write_text(gerar_html(itens, config, meta=meta), encoding="utf-8")
+    tmp.replace(destino)
     (saida / ".nojekyll").touch()
 
     print(json.dumps(resumo, ensure_ascii=False, indent=1))
-    print(f"Catálogo gravado em {saida / 'index.html'}")
+    print(f"Catálogo gravado em {destino}")
 
 
 if __name__ == "__main__":

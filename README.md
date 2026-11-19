@@ -5,7 +5,7 @@ a partir do app de revendedora. Um link fixo para mandar às clientes.
 
 ```
 App da marca (API) ──login──> coletar.py ──> docs/index.html + docs/fotos/ ──> GitHub Pages (link fixo)
-                         (roda 07h e 18h no GitHub Actions)
+                    (roda a cada 30 min, das 7h às 22h30, no GitHub Actions)
 ```
 
 ## O que vai para o catálogo (e o que nunca vai)
@@ -54,7 +54,8 @@ App da marca (API) ──login──> coletar.py ──> docs/index.html + docs/
 5. **Settings > Pages** > *Deploy from a branch* > `main` e pasta `/docs` > Save.
    O link aparece nessa mesma tela em alguns minutos.
 
-Pronto: o catálogo se atualiza às 07h e às 18h. Para atualizar na hora, use o **Run workflow**.
+Pronto: o catálogo confere o app a cada 30 minutos, das 7h às 22h30 (o GitHub às vezes atrasa alguns
+minutos). A página só é regravada quando algo muda. Para atualizar na hora, use o **Run workflow**.
 
 ## Fotos do site oficial
 
@@ -65,7 +66,10 @@ refeito a cada 7 dias ou quando chega peça nova. Para forçar: apague `cache_si
 
 ## Quando algo mudar
 
-- **Chegou uma maleta nova e o catálogo não mudou:** o número do inventário mudou. Atualize a variável `VQ_INVENTARIO`.
+- **Chegou uma maleta nova:** o script procura o inventário atual sozinho no app (telas de início e perfil).
+  A variável `VQ_INVENTARIO` é só reserva; se o registro disser que ela está desatualizada, pode apagá-la ou trocá-la.
+- **Foto da revendedora e logo:** ficam na pasta `assets/` (`foto-perfil.jpg` e `logo-veri.png`).
+  Para trocar a foto, envie outra com nome começando por `foto` e rode o workflow.
 - **E-mail de falha do GitHub:** abra a execução em *Actions*; a última linha começa com `ERRO:` e diz o motivo.
 - **Trocar nome, WhatsApp ou texto:** edite as *Variables* e rode o workflow.
 - **Mudar o visual:** edite `template.html`.

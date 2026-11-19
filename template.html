@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Catálogo de Joias</title>
+<!--__META__-->
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,8 +25,12 @@
 
   /* Cabeçalho */
   header.top{background:var(--sage);color:#fff;padding:22px 0 18px;text-align:center}
-  .brand{font-family:Poppins,Manrope,system-ui,sans-serif;font-weight:600;font-size:clamp(24px,6.4vw,34px);letter-spacing:.03em;margin:0;line-height:1.1}
+  .brand{font-family:Poppins,Manrope,system-ui,sans-serif;font-weight:600;font-size:clamp(23px,6vw,34px);letter-spacing:.02em;margin:0;line-height:1.15;text-wrap:balance}
   .tag{margin:6px 0 0;color:rgba(255,255,255,.88);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+  .avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 12px;border:3px solid rgba(255,255,255,.95);box-shadow:0 6px 18px rgba(36,48,43,.25);background:#dfe6e2}
+  .revenda{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px auto 0;padding-top:12px;border-top:1px solid rgba(255,255,255,.28);width:max-content;max-width:100%;color:rgba(255,255,255,.85);font-size:10.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+  .revenda img{height:20px;width:auto;display:block}
+  [hidden]{display:none!important}
   .bar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 0 8px}
   .search{position:relative}
   .search input{width:100%;height:44px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:0 16px 0 42px;font-size:15px;outline:none}
@@ -125,8 +130,10 @@
 
 <header class="top">
   <div class="wrap">
+    <img class="avatar" id="foto" alt="" hidden>
     <h1 class="brand" id="brand">Catálogo de Joias</h1>
     <p class="tag" id="tagline">Pronta-entrega</p>
+    <div class="revenda" id="revenda" hidden><span>Revendedora</span><img id="logo" alt="Veri"></div>
   </div>
 </header>
 
@@ -338,8 +345,10 @@ $("#sort").addEventListener("change", e => { state.sort=e.target.value; renderGr
 
 /* ---------- Início ---------- */
 document.title = CONFIG.nomeLoja;
-$("#brand").textContent = CONFIG.nomeLoja;
+$("#brand").textContent = CONFIG.nomeLoja.replace(/ ([·|•–-]) /g, "\u00A0$1 ");  // separador fica no fim da linha
 $("#tagline").textContent = CONFIG.subtitulo;
+if (CONFIG.foto) { const f = $("#foto"); f.src = CONFIG.foto; f.alt = CONFIG.nomeLoja; f.hidden = false; }
+if (CONFIG.logo) { $("#logo").src = CONFIG.logo; $("#revenda").hidden = false; }
 $("#foot").innerHTML = `Preços em reais. Disponibilidade confirmada no atendimento.${CONFIG.atualizadoEm ? `<br>Atualizado em ${esc(CONFIG.atualizadoEm)}.` : ""}`;
 renderFiltros(); renderGrade(); renderBagBar();
 </script>

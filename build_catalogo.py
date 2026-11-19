@@ -8,6 +8,9 @@ Pode ser usado sozinho, com JSONs salvos à mão:
 Só vão para o catálogo campos que podem ser públicos.
 Nunca saem daqui: nome/ID de cliente, venda, carrinho, nº de série, % de desconto.
 """
+import base64
+import html as htmllib
+import io
 import json
 import sys
 from collections import OrderedDict, defaultdict
@@ -102,12 +105,100 @@ def montar(pecas_raw, materiais_raw=None, limite_bytes=LIMITE_FOTO_DIVULGACAO):
     return itens, resumo
 
 
-def gerar_html(itens, config, template_path=TEMPLATE):
+def _arquivo(pasta, prefixo):
+    pasta = Path(pasta)
+    if not pasta.is_dir():
+        return None
+    for arq in sorted(pasta.iterdir()):
+        if arq.is_file() and arq.name.lower().startswith(prefixo) and \
+                arq.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp"):
+            return arq
+    return None
+
+
+def _data_uri(dados, mime):
+    return f"data:{mime};base64," + base64.b64encode(dados).decode("ascii")
+
+
+def preparar_imagens(pasta_assets, saida):
+    """Foto da revendedora (assets/foto*) e logo (assets/logo*) embutidas no HTML.
+    A foto também vira docs/capa.jpg, usada na prévia do link no WhatsApp e como ícone."""
+    extra = {}
+    foto, logo = _arquivo(pasta_assets, "foto"), _arquivo(pasta_assets, "logo")
+    try:
+        from PIL import Image, ImageOps
+    except ImportError:
+        Image = None
+    if foto:
+        if Image:
+            img = ImageOps.exif_transpose(Image.open(foto)).convert("RGB")
+            lado = min(img.size)
+            img = img.crop(((img.width - lado) // 2, (img.height - lado) // 2,
+                            (img.width + lado) // 2, (img.height + lado) // 2))
+            pequena = img.resize((240, 240), Image.LANCZOS)
+            b = io.BytesIO()
+            pequena.save(b, "JPEG", quality=85, optimize=True)
+            extra["foto"] = _data_uri(b.getvalue(), "image/jpeg")
+            capa = io.BytesIO()
+            img.resize((600, 600), Image.LANCZOS).save(capa, "JPEG", quality=85, optimize=True)
+            destino = Path(saida) / "capa.jpg"
+            if not destino.exists() or destino.read_bytes() != capa.getvalue():
+                destino.write_bytes(capa.getvalue())
+            extra["capa"] = "capa.jpg"
+        else:
+            mime = "image/png" if foto.suffix.lower() == ".png" else "image/jpeg"
+            extra["foto"] = _data_uri(foto.read_bytes(), mime)
+    if logo:
+        if Image:
+            img = Image.open(logo).convert("RGBA")
+            caixa = img.getchannel("A").getbbox()
+            if caixa:
+                img = img.crop(caixa)
+            if img.height > 80:
+                img = img.resize((round(img.width * 80 / img.height), 80), Image.LANCZOS)
+            b = io.BytesIO()
+            img.save(b, "PNG", optimize=True)
+            extra["logo"] = _data_uri(b.getvalue(), "image/png")
+        else:
+            extra["logo"] = _data_uri(logo.read_bytes(), "image/png")
+    return extra
+
+
+def _tags_meta(config, meta):
+    e = lambda t: htmllib.escape(str(t), quote=True)
+    nome = config.get("nomeLoja", "Catálogo de Joias")
+    linhas = [
+        f'<meta name="versao-conteudo" content="{e(meta.get("versao", ""))}">',
+        '<meta name="theme-color" content="#7b9186">',
+        f'<meta name="description" content="{e(meta.get("descricao", ""))}">',
+        '<meta property="og:type" content="website">',
+        f'<meta property="og:title" content="{e(nome)}">',
+        f'<meta property="og:description" content="{e(meta.get("descricao", ""))}">',
+    ]
+    site = meta.get("site") or ""
+    if site:
+        linhas.append(f'<meta property="og:url" content="{e(site)}">')
+    if config.get("capa"):
+        linhas.append(f'<link rel="icon" href="capa.jpg">')
+        linhas.append(f'<link rel="apple-touch-icon" href="capa.jpg">')
+        if site:
+            linhas.append(f'<meta property="og:image" content="{e(site)}capa.jpg?v={e(meta.get("versao", ""))[:8]}">')
+            linhas.append('<meta property="og:image:width" content="600">')
+            linhas.append('<meta property="og:image:height" content="600">')
+    return "\n".join(linhas)
+
+
+def gerar_html(itens, config, template_path=TEMPLATE, meta=None):
     tpl = Path(template_path).read_text(encoding="utf-8")
     seguro = lambda o: json.dumps(o, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    if "/*__DADOS__*/[]" not in tpl or "/*__CONFIG__*/{}" not in tpl:
-        raise ValueError("template.html sem os marcadores /*__DADOS__*/[] e /*__CONFIG__*/{}")
-    return tpl.replace("/*__DADOS__*/[]", seguro(itens)).replace("/*__CONFIG__*/{}", seguro(config))
+    for marcador in ("/*__DADOS__*/[]", "/*__CONFIG__*/{}", "<!--__META__-->", "<title>Catálogo de Joias</title>"):
+        if marcador not in tpl:
+            raise ValueError(f"template.html sem o marcador {marcador}")
+    nome = htmllib.escape(config.get("nomeLoja", "Catálogo de Joias"))
+    return (tpl.replace("/*__DADOS__*/[]", seguro(itens))
+               .replace("/*__CONFIG__*/{}", seguro(config))
+               .replace("<!--__META__-->", _tags_meta(config, meta or {}))
+               .replace("<title>Catálogo de Joias</title>", f"<title>{nome}</title>"))
 
 
 def main():
